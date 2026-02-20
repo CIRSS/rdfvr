@@ -145,10 +145,10 @@ def report_graph_as_txt(errors):
             report_text = report_text + "Node: {node} \nError Message: {msg}\n\n".format(node=row["node"], msg=row["msg"])
     return report_text
 
-def validation_report(file_path, file_format, schema_file, schema_format, output_path, output_format, mappings):
-    info = """Path of the RDF graph to be validated: {file_path}
-Path of the SHACL file: {schema_file}
-Datetime: {datetime}""".format(file_path=file_path, schema_file=schema_file, datetime=pd.Timestamp.now())
+def validation_report(file_path, file_format, schema_file, schema_format, output_path, output_format, mappings, no_datetime=False):
+    info = "Path of the RDF graph to be validated: {file_path}\nPath of the SHACL file: {schema_file}".format(file_path=file_path, schema_file=schema_file)
+    if not no_datetime:
+        info += "\nDatetime: {datetime}".format(datetime=pd.Timestamp.now())
     # Load a file with a given format as a RDF Graph object supported by RDFLib
     rdf_graph = load_file(file_path, graph_format=file_format)
     # Validate the RDF graph
@@ -167,7 +167,7 @@ Datetime: {datetime}""".format(file_path=file_path, schema_file=schema_file, dat
         rdf_graph_processed = graph(rdf_graph, mappings)
         G = visualize_graph(rdf_graph_processed.map(str), errors.map(str))
         # Load the networkx.Graph instance
-        nt = Network(height="50vw", width="100%", notebook=False, directed=True, select_menu=True, cdn_resources="remote")
+        nt = Network(height="100%", width="100%", notebook=False, directed=True, select_menu=True, cdn_resources="remote")
         nt.from_nx(G)
         # Update attributes such as edges, layout, etc.
         nt.set_options("""
@@ -193,6 +193,22 @@ Datetime: {datetime}""".format(file_path=file_path, schema_file=schema_file, dat
             }
         """)
         nt.save_graph(output_path)
+        # Inject responsive resize script for cross-browser compatibility
+        with open(output_path, mode="r", encoding="utf-8") as fin:
+            html_content = fin.read()
+        resize_script = """<style>html, body { height: 100%; margin: 0; padding: 0; }</style>
+<script>
+function resizeNetwork() {
+    var container = document.getElementById('mynetwork');
+    if (container) { container.style.height = window.innerHeight + 'px'; }
+}
+window.addEventListener('load', resizeNetwork);
+window.addEventListener('resize', resizeNetwork);
+</script>
+"""
+        html_content = html_content.replace("</head>", resize_script + "</head>")
+        with open(output_path, mode="w", encoding="utf-8") as fout:
+            fout.write(html_content)
     else: # txt
         report_text = info + "\n\n" + report_graph_as_txt(errors)
         if not output_path:
@@ -213,7 +229,9 @@ def main():
     parser.add_argument("--mappings", "-m", help="File of the mappings to shorten the report (str): path of the JSON file, where the key is the original text and the value is the shorter text.")
     parser.add_argument("--output", "-o", help="Path(s) of the validation report without extension (list[str] | str ). If no value, then output will be a string. Please use comma (no space) to split multiple file paths (e.g. file1,file2,file3).")
     parser.add_argument("--outputformat", "-of", help="File format(s) of the output, validation report (list[str] | str ).  Orders should be consistent with the input of --output. Default format is txt. Each item can only be one of {txt,html}. Please use comma (no space) to split multiple formats (e.g. format1,format2,format3). If all output files have the same format, only need to write once.")
-    arg_file, arg_schema, arg_fileformat, arg_schemaformat, arg_mappings, arg_outputformat, arg_output = parser.parse_args().file, parser.parse_args().schema, parser.parse_args().fileformat, parser.parse_args().schemaformat, parser.parse_args().mappings, parser.parse_args().outputformat, parser.parse_args().output
+    parser.add_argument("--no-datetime", action="store_true", help="Disable the datetime line in the output.")
+    args = parser.parse_args()
+    arg_file, arg_schema, arg_fileformat, arg_schemaformat, arg_mappings, arg_outputformat, arg_output, arg_no_datetime = args.file, args.schema, args.fileformat, args.schemaformat, args.mappings, args.outputformat, args.output, args.no_datetime
 
     if not arg_file:
         parser.error("File(s) of the RDF graph(s) to be validated are missing. Please add: --file.")
@@ -236,7 +254,7 @@ def main():
         raise ValueError("Please make sure the number of input files (and input formats) equals to the number of output files (and output formats): check the value of --file, --fileformat, --output, --outputformat.")
 
     for file_path, file_format, output_path, output_format in zip(file_paths, file_formats, output_paths, output_formats):
-        validation_report(file_path, file_format, arg_schema, arg_schemaformat, output_path, output_format, arg_mappings)
+        validation_report(file_path, file_format, arg_schema, arg_schemaformat, output_path, output_format, arg_mappings, arg_no_datetime)
 
 if __name__ == "__main__":
     main()

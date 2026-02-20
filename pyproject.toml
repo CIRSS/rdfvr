@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rdfvr"
+version = "0.3.5"
+description = "RDFVR: RDF Validation Report"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "Meng Li" },
+    {name = "Timothy McPhillips"},
+    {name = "Bertram Ludäscher"},
+]
+classifiers = [
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+]
+
+dependencies = [
+    "pandas>=2.1.0",
+    "pyshacl>=0.23.0",
+    "rdflib>=6.3.2",
+    "pyvis>=0.3.2",
+    "networkx>=3.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "twine>=4.0.2",
+]
+
+[tool.setuptools]
+py-modules = ["rdfvr"]
+
+[project.urls]
+Repository = "https://github.com/cirss/rdfvr"
+
+[project.scripts]
+rdfvr = "rdfvr:main"

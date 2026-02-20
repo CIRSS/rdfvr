@@ -10,7 +10,7 @@ $ pip3 install rdfvr
 
 ## Command Line Use
 ```bash
-$ rdfvr -f /path/to/rdf_graph -ff rdf_graph_format -s path/to/schema_of_rdf_graph -sf schema_of_rdf_graph_format -m path/to/mappings -o path/to/report -of report_format
+$ rdfvr -f /path/to/rdf_graph -ff rdf_graph_format -s path/to/schema_of_rdf_graph -sf schema_of_rdf_graph_format -m path/to/mappings -o path/to/report -of report_format --no-datetime
 ```
 Where
 - `-f` is the path of the RDF graph file to be validated (also supports multiple files)
@@ -20,6 +20,7 @@ Where
 - `-m` is the path of mappings to shorten the report
 - `-o` is the path of the validation report without extension (also supports multiple files when we have multiple RDF graph files)
 - `-of` is the format of the validation report (also supports multiple file formats when we have multiple RDF graph files)
+- `--no-datetime` disables the datetime line in the output
 
 Full CLI Usage Options:
 ```bash
@@ -27,6 +28,7 @@ $ rdfvr -h
 usage: rdfvr [-h] [--file FILE] [--schema SCHEMA] [--fileformat FILEFORMAT]
              [--schemaformat {xml,n3,turtle,nt,pretty-xml,trix,trig,nquads,json-ld,hext}]
              [--mappings MAPPINGS] [--output OUTPUT] [--outputformat OUTPUTFORMAT]
+             [--no-datetime]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -48,6 +50,7 @@ optional arguments:
                         File format(s) of the output, validation report (list[str] | str ). Orders should be consistent with the input of --output. Default format is
                         txt. Each item can only be one of {txt,html}. Please use comma (no space) to split multiple formats (e.g. format1,format2,format3). If all
                         output files have the same format, only need to write once.
+  --no-datetime         Disable the datetime line in the output.
 
 ```
 
@@ -56,7 +59,7 @@ You can call the `validation_report` function of the `rdfvr` module as follows:
 
 ```python
 from rdfvr import validation_report
-validation_report(file_path, file_format, schema, schema_format, output_path, output_format, mappings)
+validation_report(file_path, file_format, schema, schema_format, output_path, output_format, mappings, no_datetime)
 ```
 
 Where
@@ -67,6 +70,7 @@ Where
 - `output_path` is the file path (string) of the validation report without extension
 - `output_format` is the format (string) of the validation report, i.e., `txt` or `html`
 - `mappings` is the mappings (dictionary) to shorten the report
+- `no_datetime` is a boolean (default `False`) to disable the datetime line in the output
 
 The return value is `None`.
 
